@@ -11,4 +11,4 @@ Playground with design patterns (internal knowledge base)
 - Visitor
 - State
 - Strategy
-
+- Adapter
