@@ -836,3 +836,84 @@ final class ConcrateFacade: Facade {
 // Результат тот-же что и без фасада
 let simpleInterface = ConcrateFacade()
 simpleInterface.startMachine()
+
+//------------------
+
+// MARK: - Decorator
+
+protocol Coffee {
+    func cost() -> Double
+    func ingredients() -> String
+}
+
+final class Espresso: Coffee {
+    func cost() -> Double {
+        return 35.0
+    }
+    
+    func ingredients() -> String {
+        return "Espresso"
+    }
+}
+
+class CoffeeDecorator: Coffee {
+
+    private var coffee: Coffee
+    
+    init(coffee: Coffee) {
+        self.coffee = coffee
+    }
+    
+    func cost() -> Double {
+        coffee.cost()
+    }
+    
+    func ingredients() -> String {
+        coffee.ingredients()
+    }
+}
+
+final class Milk: CoffeeDecorator {
+    override func cost() -> Double {
+        return super.cost() + 10
+    }
+    
+    override func ingredients() -> String {
+        return super.ingredients() + ", Milk"
+    }
+}
+
+final class Whip: CoffeeDecorator {
+    override func cost() -> Double {
+        return super.cost() + 30
+    }
+    
+    override func ingredients() -> String {
+        return super.ingredients() + ", Whip"
+    }
+}
+
+final class Chocolate: CoffeeDecorator {
+    override func cost() -> Double {
+        return super.cost() + 35
+    }
+    
+    override func ingredients() -> String {
+        return super.ingredients() + ", Chocolate"
+    }
+}
+
+let espresso = Espresso()
+let cappuccino = Whip(coffee: Milk(coffee: espresso))
+let cappuccinoWithChocolate = Chocolate(coffee: cappuccino)
+
+print(espresso.ingredients())
+print(espresso.cost())
+
+print(cappuccino.ingredients())
+print(cappuccino.cost())
+
+print(cappuccinoWithChocolate.ingredients())
+print(cappuccinoWithChocolate.cost())
+
+//-----------
