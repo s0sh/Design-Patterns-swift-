@@ -12,3 +12,5 @@ Playground with design patterns (internal knowledge base)
 - State
 - Strategy
 - Adapter
+- Facade
+- Decorator
