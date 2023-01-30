@@ -742,3 +742,97 @@ struct Person {
 
 let persone = Person()
 persone.checkBMR(calculator: BMRCalculatorAdapter(adaptee: BMRImperialCalculator()))
+
+
+// MARK: - FACADE
+final class Machine {
+    enum State {
+        case notRunning
+        case ready
+        case running
+    }
+    
+    private(set) var state: State = .ready
+    
+    func startMachine() {
+        print("Process starting...")
+        state = .ready
+        state = .running
+        print("MACHINE IS RUNNING...")
+    }
+    
+    func stopMachine() {
+        print("Process stopping...")
+        state = .notRunning
+        print("MACHINE STOPED...")
+    }
+}
+
+final class RequestManager {
+    var isConnected = false
+    
+    func connectToTerminal() {
+        print("Connecting...")
+        isConnected = true
+        print("Connected")
+    }
+    
+    func disconnectFromTerminal() {
+        print("Disconnecting...")
+        isConnected = false
+        print("Disconnected")
+    }
+    
+    func getStatusRequest(machine: Machine) -> Machine.State {
+        print("State requesting...")
+        return machine.state
+    }
+    
+    func sendStartRequest(for machine: Machine) {
+        print("Sending request for starting machine... ")
+        machine.startMachine()
+    }
+    
+    func sendStopRequest(for machine: Machine) {
+        print("Sending request for stop machine... ")
+        machine.stopMachine()
+    }
+}
+
+// Approach Without FACADE. Tight coupling.
+let machine = Machine()
+let manager = RequestManager()
+
+if !manager.isConnected {
+    manager.connectToTerminal()
+}
+
+if manager.getStatusRequest(machine: machine) == .ready {
+    print("MACHINE IS READY")
+    manager.sendStartRequest(for: machine)
+}
+// FACADE HERE
+protocol Facade {
+    func startMachine()
+}
+
+final class ConcrateFacade: Facade {
+    func startMachine() {
+        let machine = Machine()
+        let manager = RequestManager()
+
+        if !manager.isConnected {
+            manager.connectToTerminal()
+        }
+
+        if manager.getStatusRequest(machine: machine) == .ready {
+            print("MACHINE IS READY")
+            manager.sendStartRequest(for: machine)
+        }
+    }
+}
+// Нам больше не нужно знать ничего о том что происходит внутри/под капотом
+// Есть простой интерфейс к сложной системе
+// Результат тот-же что и без фасада
+let simpleInterface = ConcrateFacade()
+simpleInterface.startMachine()
