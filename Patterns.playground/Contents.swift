@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 // MARK: - Factory method (один объект)
 enum ClotheType {
@@ -916,4 +917,63 @@ print(cappuccino.cost())
 print(cappuccinoWithChocolate.ingredients())
 print(cappuccinoWithChocolate.cost())
 
-//-----------
+//----------- View decorator ------------//
+
+protocol Element {
+    var view: UIView { get }
+    var description: String { get }
+}
+
+class SimpleView: Element {
+    var view: UIView
+    var description: String
+    init(view: UIView) {
+        self.view = view
+        self.description = "Simple view"
+    }
+}
+
+class Decorator: Element {
+    var view: UIView
+    var description: String
+    
+    init(element: Element) {
+        self.view = element.view
+        self.description = element.description
+        self.view.clipsToBounds = true
+    }
+}
+
+class UpgradeBorder: Decorator {
+    override init(element: Element) {
+        super.init(element: element)
+        self.view.layer.borderWidth = 5
+        self.view.layer.borderColor = UIColor.blue.cgColor
+        self.description = element.description + " Added border"
+        
+    }
+    
+    convenience init(element: Element, width: CGFloat, color: CGColor) {
+        self.init(element: element)
+        self.view.layer.borderWidth = width
+        self.view.layer.borderColor = color
+    }
+}
+
+class UpgradeBackground: Decorator {
+    override init(element: Element) {
+        super.init(element: element)
+        self.view.layer.backgroundColor = UIColor.red.cgColor
+        self.description = element.description + " Added background"
+    }
+}
+
+// Example usage //
+@IBOutlet weak var decoratedView: UIView!
+
+ func deecorateView() {
+    var element: Element = SimpleView(view: decoratedView)
+    element = UpgradeBorder(element: element)
+    element = UpgradeBackground(element: element)
+    print(element.description)
+}
