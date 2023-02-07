@@ -14,3 +14,4 @@ Playground with design patterns (internal knowledge base)
 - Adapter
 - Facade
 - Decorator
+- View decorator
