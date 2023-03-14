@@ -663,42 +663,112 @@ cart.pay(amount: 6000)
 // MARK: - Strategy
 
 protocol Strategy {
-    func doAction(x: Double, y: Double) -> Double
+    func getData() -> Data?
+    func sendData(data: DataModel) -> Bool
 }
 
-class Sum: Strategy {
-    func doAction(x: Double, y: Double) -> Double { x + y }
-}
-
-class Div: Strategy {
-    func doAction(x: Double, y: Double) -> Double { x / y }
-}
-
-class Multiply: Strategy {
-    func doAction(x: Double, y: Double) -> Double { x * y }
-}
-
-class Math: Strategy {
+class Networking: Strategy {
+    func sendData(data: DataModel) -> Bool {
+        print("Send data to network")
+        return true
+    }
     
-    private var instance: Strategy
+    func getData() -> Data? {
+        print("Loading data from network")
+        return nil
+    }
+}
+
+class LocalStorage: Strategy {
+    func getData() -> Data? {
+        print("Loading data from local storage")
+        return nil
+    }
+    
+    func sendData(data: DataModel) -> Bool {
+        print("Send data to local")
+        return true
+    }
+}
+
+class DataHandler: Strategy {
+    private var strategy: Strategy
     
     init(strategy: Strategy) {
-        self.instance = strategy
+        self.strategy = strategy
+    }
+    
+    func change(strategy: Strategy) {
+        self.strategy = strategy
+    }
+    
+    func getData() -> Data? {
+        return strategy.getData()
+    }
+    
+    func sendData(data: DataModel) -> Bool {
+        strategy.sendData(data: data)
+        return true
+    }
+    
+}
+
+struct DataModel {}
+
+enum ServerError: Error {
+    case dataCorrupted
+}
+
+protocol ViewModelProtocol {
+    init(dataHandler: DataHandler)
+    func loadData() -> Data?
+    func sendData(data: DataModel) -> Bool
+    func change(strategy: Strategy)
+}
+
+class ViewModel: ViewModelProtocol {
+    private var dataHandler: DataHandler
+    required init(dataHandler: DataHandler) {
+        self.dataHandler = dataHandler
+    }
+    
+    func loadData() -> Data? {
+        return dataHandler.getData()
+    }
+    
+    func change(strategy: Strategy) {
+        dataHandler.change(strategy: strategy)
+    }
+    
+    func sendData(data: DataModel) -> Bool {
+        dataHandler.sendData(data: data)
+    }
+}
+
+class MainView {
+    
+    var viewModel: ViewModelProtocol
+    
+    init(viewModel: ViewModelProtocol) {
+        self.viewModel = viewModel
+    }
+    
+    func send(data: DataModel) {
+        viewModel.sendData(data: data)
     }
     
     func changeStrategy(_ strategy: Strategy) {
-        self.instance = strategy
-    }
-    
-    func doAction(x: Double, y: Double) -> Double {
-        self.instance.doAction(x: x, y: y)
+        viewModel.change(strategy: strategy)
     }
 }
 
-var math = Math(strategy: Sum())
-math.doAction(x: 20, y: 1.5)
-math.changeStrategy(Div())
-math.doAction(x: 100, y: 10)
+let dataHandler = DataHandler(strategy: LocalStorage())
+let viewModel = ViewModel(dataHandler: dataHandler)
+let mainView = MainView(viewModel: viewModel)
+
+mainView.send(data: DataModel())
+mainView.changeStrategy(Networking())
+mainView.send(data: DataModel())
 
 // -------------
 
@@ -969,7 +1039,7 @@ class UpgradeBackground: Decorator {
 }
 
 // Example usage //
-@IBOutlet weak var decoratedView: UIView!
+weak var decoratedView: UIView!
 
  func deecorateView() {
     var element: Element = SimpleView(view: decoratedView)
